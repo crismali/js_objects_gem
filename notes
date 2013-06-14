@@ -1,0 +1,14 @@
+notes
+
+- setting a proc property on jsobject should:
+  - calling obj.method_function should yield the function
+  - calling obj[method] should yield the function
+    - should calling it here call it in the context of the obj? yep
+    - but calling the proc should execute in context of the obj (ie obj['func'].call)
+  - calling obj.method should call the method in the context of obj
+
+- calling obj.delete_property(symbol/string) should delete the property in every way
+
+- if you call a function that exists on the object's prototype but not on the object itself
+it should see if it's prototype has it and bubble the proc up to the object that's receiving the message
+and then instance exec it

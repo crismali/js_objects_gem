@@ -1,5 +1,5 @@
 require 'active_support/all'
-require './object'
+require './lib/object.rb'
 
 class JsObject < HashWithIndifferentAccess
 
@@ -27,9 +27,11 @@ class JsObject < HashWithIndifferentAccess
     remove_from_falsey_lists key, value
     add_to_falsey_lists key, value
     self.old_brackets_equal key, value
+    define_methods(key, value) unless respond_to? key
   end
 
   def remove_from_falsey_lists(key, value)
+    #add more tests around this so it can be refactored better
     if @nil_keys.include? key
       @nil_keys.delete key.to_s
       @nil_keys.delete key.to_sym
@@ -49,33 +51,34 @@ class JsObject < HashWithIndifferentAccess
     end
   end
 
-  def method_missing(method, *arguments)
+  def method_missing(method, *arguments, &block)
     if method.to_s[-1] == '=' && method.to_s[-2] != '='
-      if arguments.first.kind_of? Proc
-        define_proc_method(method, arguments.first)
-      else
-        define_setter_method method
-        define_getter_method method
-        self.send method, arguments.first
-      end
+      self[setter_to_getter_name(method)] = arguments.first
     else
-      prototype[method]
+      prototypes_value = prototype[method]
+      if prototypes_value.kind_of? Proc
+        self.instance_exec *arguments, &prototypes_value
+      else
+        prototypes_value
+      end
     end
   end
 
-  def define_proc_method(method_name, proc)
+  def define_proc_methods(method_name, proc)
     define_setter_method method_name
-    self.send method_name, proc
-
     attr_name = setter_to_getter_name(method_name)
-
     self.define_singleton_method attr_name do |*arguments|
       self.instance_exec *arguments, &self[attr_name]
     end
+    self.send method_name, proc
   end
 
   def setter_to_getter_name(setter_name)
     setter_name.to_s.chop.to_sym
+  end
+
+  def getter_to_setter_name(getter_name)
+    "#{getter_name}=".to_sym
   end
 
   def define_setter_method(method_name)
@@ -91,4 +94,13 @@ class JsObject < HashWithIndifferentAccess
     end
   end
 
+  def define_methods(method_name, value)
+    setter_name = getter_to_setter_name(method_name)
+    if value.kind_of? Proc
+      define_proc_methods(setter_name, value)
+    else
+      define_setter_method setter_name
+      define_getter_method setter_name
+    end
+  end
 end

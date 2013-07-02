@@ -1,14 +1,176 @@
-require '../lib/object'
-require '../lib/js_object'
+require 'pry'
+require 'rspec'
+require_relative '../lib/object'
+require_relative '../lib/js_object'
 
-desribe JsObject do
+describe JsObject do
 
-  desribe '#method_missing' do
+  let(:obj) { JsObject.new }
 
-    it ""
+  describe '#method_missing' do
+
+    context "a 'method=' method is called on the object for the first time" do
+      before { obj.test = 'test' }
+
+      it "creates a method= method" do
+        expect(obj).to respond_to(:test=)
+      end
+
+      it "creates a method with out the = sign" do
+        expect(obj).to respond_to(:test)
+      end
+    end
+
+    context "method= is called but not for the first time" do
+
+      it "sets a new value that can be retrieved by 'method'" do
+        obj.test = 5
+        expect(obj.test).to eq(5)
+        obj.test = false
+        expect(obj.test).to be_false
+        obj.test = nil
+        expect(obj.test).to be_nil
+      end
+    end
+
+    context "an unknown method that doesn't end with an = is called" do
+
+      it "returns the value that was set previously" do
+        obj.test = 5
+        expect(obj.test).to eq(5)
+        obj.test = false
+        expect(obj.test).to be_false
+        obj.test = nil
+        expect(obj.test).to be_nil
+      end
+
+      context "when the value set was a proc" do
+        let(:proc) { Proc.new { |a| a + self.test } }
+
+        it "calls the proc in the context of the object" do
+          obj.test = 2
+          obj.proc = proc
+          expect(obj.proc(1)).to eq(3)
+        end
+      end
+    end
+  end
+
+  describe 'prototype property' do
+    let(:parent_obj) { JsObject.new }
+
+    it "has a prototype that can be set via prototype=" do
+      obj.prototype = parent_obj
+      expect(obj.prototype).to eq(parent_obj)
+    end
+
+    it "has a prototype that can be set via [:prototype]=" do
+      obj[:prototype] = parent_obj
+      expect(obj.prototype).to eq(parent_obj)
+    end
+
+    it "has a prototype that can be set via ['prototype']=" do
+      obj['prototype'] = parent_obj
+      expect(obj.prototype).to eq(parent_obj)
+    end
+
+    context "an object lacks a property and it's delegated to its prototype" do
+      before do
+        obj.prototype = parent_obj
+      end
+
+      it "executes a proc set on the prototype in context of the current object only" do
+        parent_obj.set_test = Proc.new { self.test = 'test' }
+        obj.set_test
+        expect(obj.test).to eq('test')
+        expect(parent_obj.test).to be_nil
+      end
+
+      it "returns the value set on it's prototype but doesn't set it on the object itself" do
+        parent_obj.test = 5
+        expect(obj.test).to eq(5)
+        obj.prototype = OBJECT
+        expect(obj.test).to be_nil
+      end
+    end
+  end
+
+  describe "#[]" do
+
+    it "returns the value set at the key (string)" do
+      obj.test = 5
+      expect(obj['test']).to eq(5)
+      obj.test = false
+      expect(obj['test']).to be_false
+      obj.test = nil
+      expect(obj['test']).to be_nil
+    end
+
+
+    it "returns the value set at the key (symbol)" do
+      obj.test = 5
+      expect(obj[:test]).to eq(5)
+      obj.test = false
+      expect(obj[:test]).to be_false
+      obj.test = nil
+      expect(obj[:test]).to be_nil
+    end
+
+    context "when the value is not set on the object but it is on the prototype" do
+      let(:parent_obj) { JsObject.new }
+      before { obj.prototype = parent_obj }
+
+      it "returns the value held by the prototype" do
+        expect(obj[:test]).to be_nil
+        parent_obj.test = 5
+        expect(obj[:test]).to eq(5)
+      end
+
+      it "returns a proc when it's been set on it's prototype" do
+        expect(obj[:test]).to be_nil
+        proc = Proc.new { 5 }
+        parent_obj.test = proc
+        expect(obj[:test]).to eq(proc)
+      end
+    end
 
   end
 
-  desribe '#'
+  describe "#[]=" do
+    it "sets the value on the object" do
+      expect(obj[:test]).to be_nil
+      obj[:test] = 5
+      expect(obj[:test]).to eq(5)
+      obj[:test] = 'test'
+      expect(obj[:test]).to eq('test')
+      obj[:test] = false
+      expect(obj[:test]).to eq(false)
+      obj[:test] = nil
+      expect(obj[:test]).to eq(nil)
+    end
 
+    it "sets up getter and setter methods for the key" do
+      obj[:unlikely_key_name] = 'test'
+      expect(obj).to respond_to :unlikely_key_name
+      expect(obj.unlikely_key_name).to eq('test')
+      expect(obj).to respond_to :unlikely_key_name=
+      obj.unlikely_key_name = 'other string'
+      expect(obj.unlikely_key_name).to eq('other string')
+    end
+
+    context "when the value is a proc" do
+      let(:proc) { Proc.new { self.test = 'test' } }
+      before { obj[:proc] = proc }
+
+      it "sets the value when the value is a proc" do
+        expect(obj[:proc]).to eq(proc)
+      end
+
+      it "can call the proc in the context of itself through a 'method' call" do
+        expect(obj).to respond_to :proc
+        obj.proc
+        expect(obj.test).to eq('test')
+      end
+    end
+  end
 end

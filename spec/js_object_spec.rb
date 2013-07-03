@@ -100,10 +100,13 @@ describe JsObject do
     it "returns the value set at the key (string)" do
       obj.test = 5
       expect(obj['test']).to eq(5)
+      expect(obj[:test]).to eq(5)
       obj.test = false
       expect(obj['test']).to be_false
+      expect(obj[:test]).to be_false
       obj.test = nil
       expect(obj['test']).to be_nil
+      expect(obj[:test]).to be_nil
     end
 
 

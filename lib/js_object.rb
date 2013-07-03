@@ -3,18 +3,20 @@ require './lib/object.rb'
 
 class JsObject < HashWithIndifferentAccess
 
+  attr_accessor :nil_keys, :false_keys
+
   def initialize(prototype=nil)
-    @nil_keys = []
-    @false_keys = []
+    self.nil_keys = []
+    self.false_keys = []
     self.prototype = prototype || OBJECT
   end
 
   alias_method :old_brackets, :[]
 
   def [](key)
-    if @nil_keys.include? key
+    if nil_keys.include? key
       nil
-    elsif @false_keys.include? key
+    elsif false_keys.include? key
       false
     else
       self.old_brackets(key) || prototype[key]
@@ -31,23 +33,19 @@ class JsObject < HashWithIndifferentAccess
   end
 
   def remove_from_falsey_lists(key, value)
-    #add more tests around this so it can be refactored better
-    if @nil_keys.include? key
-      @nil_keys.delete key.to_s
-      @nil_keys.delete key.to_sym
-    elsif @false_keys.include? key
-      @false_keys.delete key.to_s
-      @false_keys.delete key.to_sym
+    sym_key = key.to_sym
+    if nil_keys.include? sym_key
+      nil_keys.delete sym_key
+    elsif false_keys.include? sym_key
+      false_keys.delete sym_key
     end
   end
 
   def add_to_falsey_lists(key, value)
     if value.nil?
       @nil_keys << key.to_sym
-      @nil_keys << key.to_s
     elsif value == false
       @false_keys << key.to_sym
-      @false_keys << key.to_s
     end
   end
 
@@ -55,22 +53,23 @@ class JsObject < HashWithIndifferentAccess
     if method.to_s[-1] == '=' && method.to_s[-2] != '='
       self[setter_to_getter_name(method)] = arguments.first
     else
-      prototypes_value = prototype[method]
-      if prototypes_value.kind_of? Proc
-        self.instance_exec *arguments, &prototypes_value
-      else
-        prototypes_value
-      end
+      delegate_to_prototype method, arguments
     end
   end
 
-  def define_proc_methods(method_name, proc)
-    define_setter_method method_name
-    attr_name = setter_to_getter_name(method_name)
-    self.define_singleton_method attr_name do |*arguments|
-      self.instance_exec *arguments, &self[attr_name]
+  def delegate_to_prototype(method_name, arguments)
+    prototypes_value = prototype[method_name]
+    if prototypes_value.kind_of? Proc
+      self.instance_exec *arguments, &prototypes_value
+    else
+      prototypes_value
     end
-    self.send method_name, proc
+  end
+
+  def define_proc_getter_method(method_name, proc)
+    self.define_singleton_method method_name do |*arguments|
+      self.instance_exec *arguments, &self[method_name]
+    end
   end
 
   def setter_to_getter_name(setter_name)
@@ -88,19 +87,17 @@ class JsObject < HashWithIndifferentAccess
   end
 
   def define_getter_method(method_name)
-    attr_name = setter_to_getter_name(method_name)
-    self.define_singleton_method attr_name do
-      self[attr_name]
+    self.define_singleton_method method_name do
+      self[method_name]
     end
   end
 
   def define_methods(method_name, value)
-    setter_name = getter_to_setter_name(method_name)
+    define_setter_method getter_to_setter_name(method_name)
     if value.kind_of? Proc
-      define_proc_methods(setter_name, value)
+      define_proc_getter_method method_name, value
     else
-      define_setter_method setter_name
-      define_getter_method setter_name
+      define_getter_method method_name
     end
   end
 end

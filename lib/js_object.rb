@@ -26,13 +26,22 @@ class JsObject < HashWithIndifferentAccess
   alias_method :old_brackets_equal, :[]=
 
   def []=(key, value)
-    remove_from_falsey_lists key, value
+    remove_from_falsey_lists key
     add_to_falsey_lists key, value
     self.old_brackets_equal key, value
     define_methods(key, value) unless respond_to? key
   end
 
-  def remove_from_falsey_lists(key, value)
+  alias_method :old_delete, :delete
+
+  def delete(property)
+    remove_from_falsey_lists property
+    singleton_class.send :remove_method, property
+    singleton_class.send :remove_method, getter_to_setter_name(property)
+    old_delete property
+  end
+
+  def remove_from_falsey_lists(key)
     sym_key = key.to_sym
     if nil_keys.include? sym_key
       nil_keys.delete sym_key

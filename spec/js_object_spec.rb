@@ -176,4 +176,25 @@ describe JsObject do
       end
     end
   end
+
+  describe "#delete" do
+
+    it "removes the property from the object's falsey lists" do
+      obj.false_test = false
+      obj.nil_test = nil
+      obj.delete :nil_test
+      obj.delete 'false_test'
+      nil_list = obj.instance_eval { nil_keys }
+      false_list = obj.instance_eval { false_keys }
+      expect(nil_list).to_not include :nil_test
+      expect(false_list).to_not include :false_test
+    end
+
+    it "removes the setter and getter methods" do
+      obj.test = 'test'
+      obj.delete :test
+      expect(obj).to_not respond_to :test
+      expect(obj).to_not respond_to :test=
+    end
+  end
 end

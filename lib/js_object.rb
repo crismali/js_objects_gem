@@ -62,14 +62,17 @@ class JsObject < HashWithIndifferentAccess
     if method.to_s[-1] == '=' && method.to_s[-2] != '='
       self[setter_to_getter_name(method)] = arguments.first
     else
-      delegate_to_prototype method, arguments
+      delegate_to_prototype method, arguments, block
     end
   end
 
-  def delegate_to_prototype(method_name, arguments)
+  def delegate_to_prototype(method_name, arguments, block)
     prototypes_value = prototype[method_name]
     if prototypes_value.kind_of? Proc
-      self.instance_exec *arguments, &prototypes_value
+      self.define_singleton_method :__proto_proc, prototypes_value
+      __proto_proc *arguments, &block
+    elsif prototypes_value.nil? && block
+      self[method_name] = block
     else
       prototypes_value
     end

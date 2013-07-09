@@ -111,6 +111,13 @@ describe JsObject do
         obj.prototype = OBJECT
         expect(obj.test).to be_nil
       end
+
+      it "executes a proc set on the prototype in its context and passes it a block when given" do
+        obj.number = 2
+        parent_obj.test = Proc.new{ |arg, &block| arg + self.number + block.call }
+        results = obj.test(3){ 5 }
+        expect(results).to eq(10)
+      end
     end
   end
 

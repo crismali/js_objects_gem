@@ -10,9 +10,9 @@ h.something = 'something'
 j = JsObject.new
 
 
-x = ->(a, &b) { b.call a }
+x = ->(a) { a * 2 }
 y = Proc.new { |a, &b| b.call a}
 
-h.proc = x
+h.proc = y
 
 binding.pry

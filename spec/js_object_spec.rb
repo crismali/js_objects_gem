@@ -21,7 +21,7 @@ describe JsObject do
       end
     end
 
-    context "method= is called but not for the first time" do
+    context "method= is called" do
 
       it "sets a new value that can be retrieved by 'method'" do
         obj.test = 5
@@ -30,6 +30,27 @@ describe JsObject do
         expect(obj.test).to be_false
         obj.test = nil
         expect(obj.test).to be_nil
+      end
+
+      context "the value was set to a Proc" do
+        let(:proc) { Proc.new { |a| a * a } }
+
+        it "calls the proc in the context of the object when calling method" do
+          obj.proc = proc
+          expect(obj.proc(1)).to eq(1)
+        end
+
+        it "behaves like proper getter and setters when set from a proc to a non proc value" do
+          obj.test = proc
+          obj.test = 5
+          expect(obj.test).to eq(5)
+        end
+
+        it "can invoke the proc as a method when the original value was a non proc and it has been set to a proc" do
+          obj.test = 5
+          obj.test = proc
+          expect(obj.test(3)).to eq(9)
+        end
       end
     end
 
@@ -44,13 +65,11 @@ describe JsObject do
         expect(obj.test).to be_nil
       end
 
-      context "when the value set was a proc" do
-        let(:proc) { Proc.new { |a| a + self.test } }
-
-        it "calls the proc in the context of the object" do
-          obj.test = 2
-          obj.proc = proc
-          expect(obj.proc(1)).to eq(3)
+      context "when the method was called with a block" do
+        it "sets the block as a value for the object as a proc" do
+          obj.test { |x| x * x }
+          expect(obj[:test]).to be_kind_of Proc
+          expect(obj.test(2)).to eq(4)
         end
       end
     end

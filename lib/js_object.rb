@@ -1,5 +1,5 @@
 require 'active_support/all'
-require './lib/object.rb'
+require_relative 'object'
 
 class JsObject < HashWithIndifferentAccess
 
@@ -28,8 +28,8 @@ class JsObject < HashWithIndifferentAccess
   def []=(key, value)
     remove_from_falsey_lists key
     add_to_falsey_lists key, value
+    define_methods(key, value)
     self.old_brackets_equal key, value
-    define_methods(key, value) unless respond_to? key
   end
 
   alias_method :old_delete, :delete
@@ -75,12 +75,6 @@ class JsObject < HashWithIndifferentAccess
     end
   end
 
-  def define_proc_getter_method(method_name, proc)
-    self.define_singleton_method method_name do |*arguments|
-      self.instance_exec *arguments, &self[method_name]
-    end
-  end
-
   def setter_to_getter_name(setter_name)
     setter_name.to_s.chop.to_sym
   end
@@ -95,6 +89,10 @@ class JsObject < HashWithIndifferentAccess
     end
   end
 
+  def define_proc_getter_method(method_name, proc)
+    self.define_singleton_method method_name, &proc
+  end
+
   def define_getter_method(method_name)
     self.define_singleton_method method_name do
       self[method_name]
@@ -102,7 +100,7 @@ class JsObject < HashWithIndifferentAccess
   end
 
   def define_methods(method_name, value)
-    define_setter_method getter_to_setter_name(method_name)
+    define_setter_method getter_to_setter_name(method_name) unless respond_to? method_name
     if value.kind_of? Proc
       define_proc_getter_method method_name, value
     else

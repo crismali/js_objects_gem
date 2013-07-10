@@ -1,5 +1,7 @@
 require 'pry'
 require 'rspec'
+require 'active_support/all'
+require_relative '../lib/prototype'
 require_relative '../lib/object'
 require_relative '../lib/js_object'
 
@@ -118,6 +120,10 @@ describe JsObject do
         results = obj.test(3){ 5 }
         expect(results).to eq(10)
       end
+
+      it "returns nil when no value has been set on the object or its prototypes_value" do
+        expect(obj.not_set_anywhere).to be_nil
+      end
     end
   end
 
@@ -185,6 +191,11 @@ describe JsObject do
       expect(obj).to respond_to :unlikely_key_name=
       obj.unlikely_key_name = 'other string'
       expect(obj.unlikely_key_name).to eq('other string')
+    end
+
+    xit "works when the key is a number" do
+      obj[5] = 'test'
+      expect(obj[5]).to eq('test')
     end
 
     context "when the value is a proc" do

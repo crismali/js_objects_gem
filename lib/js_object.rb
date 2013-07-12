@@ -1,11 +1,8 @@
 require 'active_support/all'
-require_relative 'object'
 
 OBJECT = Prototype.new
 
 class JsObject < Prototype
-
-  attr_accessor :nil_keys, :false_keys
 
   def initialize(prototype=nil)
     self.nil_keys = []
@@ -14,9 +11,9 @@ class JsObject < Prototype
   end
 
   def [](key)
-    if nil_keys.include? key
+    if nil_keys.include? key.to_s
       nil
-    elsif false_keys.include? key
+    elsif false_keys.include? key.to_s
       false
     else
       super || prototype[key]
@@ -36,20 +33,18 @@ class JsObject < Prototype
 
   private
 
+  attr_accessor :nil_keys, :false_keys
+
   def remove_from_falsey_lists(key)
-    sym_key = key.to_sym
-    if nil_keys.include? sym_key
-      nil_keys.delete sym_key
-    elsif false_keys.include? sym_key
-      false_keys.delete sym_key
-    end
+    nil_keys.delete key.to_s
+    false_keys.delete key.to_s
   end
 
   def add_to_falsey_lists(key, value)
     if value.nil?
-      nil_keys << key.to_sym
+      nil_keys << key.to_s
     elsif value == false
-      false_keys << key.to_sym
+      false_keys << key.to_s
     end
   end
 
@@ -61,7 +56,7 @@ class JsObject < Prototype
   def delegate_to_prototype(method_name, arguments, block)
     prototypes_value = prototype[method_name]
     if prototypes_value.kind_of? Proc
-      self.define_singleton_method :__proto_proc, prototypes_value
+      define_singleton_method :__proto_proc, prototypes_value
       __proto_proc *arguments, &block
     elsif prototypes_value.nil? && block
       self[method_name] = block

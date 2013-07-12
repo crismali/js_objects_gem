@@ -30,17 +30,17 @@ class Prototype < HashWithIndifferentAccess
   end
 
   def define_setter_method(method_name)
-    self.define_singleton_method method_name do |new_value|
+    define_singleton_method method_name do |new_value|
       self[setter_to_getter_name(method_name)] = new_value
     end
   end
 
   def define_proc_getter_method(method_name, proc)
-    self.define_singleton_method method_name, &proc
+    define_singleton_method method_name, &proc
   end
 
   def define_getter_method(method_name)
-    self.define_singleton_method method_name do
+    define_singleton_method method_name do
       self[method_name]
     end
   end

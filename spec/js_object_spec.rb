@@ -2,7 +2,6 @@ require 'pry'
 require 'rspec'
 require 'active_support/all'
 require_relative '../lib/prototype'
-require_relative '../lib/object'
 require_relative '../lib/js_object'
 
 describe JsObject do
@@ -132,13 +131,10 @@ describe JsObject do
     it "returns the value set at the key (string)" do
       obj.test = 5
       expect(obj['test']).to eq(5)
-      expect(obj[:test]).to eq(5)
       obj.test = false
       expect(obj['test']).to be_false
-      expect(obj[:test]).to be_false
       obj.test = nil
       expect(obj['test']).to be_nil
-      expect(obj[:test]).to be_nil
     end
 
 
@@ -149,6 +145,12 @@ describe JsObject do
       expect(obj[:test]).to be_false
       obj.test = nil
       expect(obj[:test]).to be_nil
+    end
+
+    it "is indifferent when it comes to strings and symbols" do
+      obj.test = 5
+      expect(obj[:test]).to eq(5)
+      expect(obj['test']).to eq(5)
     end
 
     context "when the value is not set on the object but it is on the prototype" do
@@ -184,6 +186,20 @@ describe JsObject do
       expect(obj[:test]).to eq(nil)
     end
 
+    it "sets the value with the string key and it's retrievable when it's false through string or symbol keys" do
+      obj[:test] = false
+      expect(obj[:test]).to eq(false)
+      obj['test_two'] = false
+      expect(obj['test_two']).to eq(false)
+    end
+
+    it "returns the value after it's previously been set to false" do
+      obj[:test] = false
+      obj['test'] = 5
+      expect(obj['test']).to eq(5)
+      expect(obj[:test]).to eq(5)
+    end
+
     it "sets up getter and setter methods for the key" do
       obj[:unlikely_key_name] = 'test'
       expect(obj).to respond_to :unlikely_key_name
@@ -193,7 +209,7 @@ describe JsObject do
       expect(obj.unlikely_key_name).to eq('other string')
     end
 
-    xit "works when the key is a number" do
+    it "works when the key is a number" do
       obj[5] = 'test'
       expect(obj[5]).to eq('test')
     end

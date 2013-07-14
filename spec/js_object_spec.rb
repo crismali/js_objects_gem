@@ -1,6 +1,5 @@
 require 'pry'
 require 'rspec'
-require 'active_support/all'
 require_relative '../lib/prototype'
 require_relative '../lib/js_object'
 
@@ -209,7 +208,7 @@ describe JsObject do
       expect(obj.unlikely_key_name).to eq('other string')
     end
 
-    xit "works when the key is a number" do
+    it "works when the key is a number" do
       obj[5] = 'test'
       expect(obj[5]).to eq('test')
     end
@@ -248,6 +247,18 @@ describe JsObject do
       obj.delete :test
       expect(obj).to_not respond_to :test
       expect(obj).to_not respond_to :test=
+    end
+  end
+
+  context "when switching between many types" do
+    it "returns the proper values indifferent to symbols and strings" do
+      obj.test = 'test'
+      expect(obj['test']).to eq('test')
+      expect(obj[:test]).to eq('test')
+      proc = Proc.new{ 5 }
+      obj.proc = proc
+      expect(obj['proc']).to eq(proc)
+      expect(obj[:proc]).to eq(proc)
     end
   end
 end

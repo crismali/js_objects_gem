@@ -4,9 +4,7 @@ The not-so-creative name pretty much gives it all away. This gem allows you to u
 a Javascript like object in Ruby. Some documentation as well as what I assume will
 be frequently asked questions are below.
 ## Dependencies
-You'll need these gems to use Javascript Objects:
-* Ruby 1.9 or Ruby 2.0. Might work on 1.8.7, but I haven't checked.
-* ActiveSupport (or at least the HashWithIndifferentAccess)
+Ruby 1.9 or Ruby 2.0. Might work on 1.8.7, but I haven't checked.
 ## How to install
 Y'know, the way you normally install gems. Either: ```gem install js_objects``` or
 add ```gem js_objects``` to your Gemfile and ```bundle install```.

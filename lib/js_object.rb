@@ -1,5 +1,3 @@
-require 'active_support/all'
-
 PROTOTYPE = Prototype.new
 
 class JsObject < Prototype
@@ -21,13 +19,13 @@ class JsObject < Prototype
   end
 
   def []=(key, value)
-    remove_from_falsey_lists key
-    add_to_falsey_lists key, value
+    remove_from_falsey_lists key.to_s
+    add_to_falsey_lists key.to_s, value
     super
   end
 
   def delete(property)
-    remove_from_falsey_lists property
+    remove_from_falsey_lists property.to_s
     super
   end
 
@@ -36,15 +34,15 @@ class JsObject < Prototype
   attr_accessor :nil_keys, :false_keys
 
   def remove_from_falsey_lists(key)
-    nil_keys.delete key.to_s
-    false_keys.delete key.to_s
+    nil_keys.delete key
+    false_keys.delete key
   end
 
   def add_to_falsey_lists(key, value)
     if value.nil?
-      nil_keys << key.to_s
+      nil_keys << key
     elsif value == false
-      false_keys << key.to_s
+      false_keys << key
     end
   end
 

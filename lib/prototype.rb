@@ -1,8 +1,12 @@
-class Prototype < HashWithIndifferentAccess
+class Prototype < Hash
+
+  def [](key)
+    super(key.to_s)
+  end
 
   def []=(key, value)
-    define_methods(key, value)
-    super
+    define_methods(key.to_s, value)
+    super(key.to_s, value)
   end
 
   def delete(property)

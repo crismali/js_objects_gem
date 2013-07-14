@@ -1,13 +1,13 @@
 require 'active_support/all'
 
-OBJECT = Prototype.new
+PROTOTYPE = Prototype.new
 
 class JsObject < Prototype
 
   def initialize(prototype=nil)
     self.nil_keys = []
     self.false_keys = []
-    self[:prototype] = prototype || OBJECT
+    self[:prototype] = prototype || PROTOTYPE
   end
 
   def [](key)

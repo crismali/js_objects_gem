@@ -1,19 +1,15 @@
 # Javascript Objects Gem
-
 ## About
 The not-so-creative name pretty much gives it all away. This gem allows you to use
 a Javascript like object in Ruby. Some documentation as well as what I assume will
 be frequently asked questions are below.
-
-## Dependency
+## Dependencies
 You'll need these gems to use Javascript Objects:
-
+* Ruby 1.9 or Ruby 2.0. Might work on 1.8.7, but I haven't checked.
 * ActiveSupport (or at least the HashWithIndifferentAccess)
-
 ## How to install
 Y'know, the way you normally install gems. Either: ```gem install js_objects``` or
 add ```gem js_objects``` to your Gemfile and ```bundle install```.
-
 ## Syntaxes and ways to use this thing
 First, get a Javascript object like so:
 ```ruby
@@ -85,15 +81,18 @@ js_obj.tired = "of this property"
 js_obj.delete :tired
 js_obj.tired                    # => nil
 ```
-
-
 ## Frequently Asked Questions (aka FAQ)
-
 ### Why would anyone want this?
-
 * If they really liked Javascript objects but had to write Ruby.
 * If they hate brackets and would rather just call methods on their objects
 * If they hate classical inheritance and prefer prototypal inheritance.
 * If they wanted really badass OpenStructs with prototypal inheritance.
+### Why not make this out of OpenStruct instead of Hash?
+Then it wouldn't work in Ruby 1.9.3. OpenStructs only got the cool new ```#[]``` syntax in Ruby 2.0.
+Also, OpenStructs are pretty bare methodwise while Hashes already have a ton of methods.
+That is, I'd rather wrap those methods with super than write a bunch new methods for OpenStruct.
+Granted, I haven't actually wrapped a lot of those methods yet, but I probably will at some point.
+
+
 
 

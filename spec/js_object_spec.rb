@@ -109,7 +109,7 @@ describe JsObject do
       it "returns the value set on it's prototype but doesn't set it on the object itself" do
         parent_obj.test = 5
         expect(obj.test).to eq(5)
-        obj.prototype = OBJECT
+        obj.prototype = PROTOTYPE
         expect(obj.test).to be_nil
       end
 

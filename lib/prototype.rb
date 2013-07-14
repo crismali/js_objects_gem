@@ -17,7 +17,7 @@ class Prototype < HashWithIndifferentAccess
     if method.to_s[-1] == '=' && method.to_s[-2] != '='
       self[setter_to_getter_name(method)] = arguments.first
     else
-      self[:method]
+      self[method]
     end
   end
 

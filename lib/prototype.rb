@@ -20,6 +20,8 @@ class Prototype < Hash
   def method_missing(method, *arguments, &block)
     if equals_method?(method)
       self[setter_to_getter_name(method)] = arguments.first
+    elsif block
+      self[method] = block
     else
       self[method]
     end

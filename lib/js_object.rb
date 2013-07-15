@@ -47,7 +47,7 @@ class JsObject < Prototype
   end
 
   def method_missing(method, *arguments, &block)
-    return super if equals_method?(method)
+    return super if equals_method?(method) || (block && prototype[method].nil?)
     delegate_to_prototype method, arguments, block
   end
 
@@ -56,8 +56,6 @@ class JsObject < Prototype
     if prototypes_value.kind_of? Proc
       define_singleton_method :__proto_proc, prototypes_value
       __proto_proc *arguments, &block
-    elsif prototypes_value.nil? && block
-      self[method_name] = block
     else
       prototypes_value
     end

@@ -224,13 +224,21 @@ PROTOTYPE.something                        # => nil
 * If they hate brackets and would rather just call methods on their objects
 * If they hate classical inheritance and prefer prototypal inheritance.
 * If they wanted really badass OpenStructs with prototypal inheritance.
-
 ### Why not make this out of OpenStruct instead of Hash?
 Then it wouldn't work in Ruby 1.9.3. OpenStructs only got the cool new ```#[]``` syntax in Ruby 2.0.
 Also, OpenStructs are pretty bare methodwise while Hashes already have a ton of methods.
 That is, I'd rather wrap those methods with super than write a bunch new methods for OpenStruct.
 Granted, I haven't actually wrapped a lot of those methods yet, but I probably will at some point.
-
+### Why not make this out of HashWithIndifferentAccess?
+It was pretty easy to make it pretty indifferent without pulling in _all_ of ActiveSupport, so I did
+that instead. Plus, in Javascript you can't really use Arrays and Objects as keys, so partially taking
+that away actually makes this more like Javascript. There are always tradeoffs and in this case not using
+ActiveSupport costs us being able to use some objects as keys. That's fine with me.
+### Everyone hates Javascript and prefers Ruby, so why make Ruby more like Javascript?
+Again, why do you gotta hate? In particular, on Javascript? I understand what you mean, but
+this was a good learning exercise. Besides, prototypal inheritance and passing procs around can actually
+create some pretty expressive and powerful code. Maybe this will help you practice Javascript and you'll
+eventually learn to love it.
 
 
 

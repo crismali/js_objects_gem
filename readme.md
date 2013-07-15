@@ -224,6 +224,7 @@ PROTOTYPE.something                        # => nil
 * If they hate brackets and would rather just call methods on their objects
 * If they hate classical inheritance and prefer prototypal inheritance.
 * If they wanted really badass OpenStructs with prototypal inheritance.
+
 ### Why not make this out of OpenStruct instead of Hash?
 Then it wouldn't work in Ruby 1.9.3. OpenStructs only got the cool new ```#[]``` syntax in Ruby 2.0.
 Also, OpenStructs are pretty bare methodwise while Hashes already have a ton of methods.

@@ -205,9 +205,8 @@ PROTOTYPE.another_thing                          # => nil
 js_obj.another_thing                             # => nil
 js_obj2.another_thing                            # => "another thing"
 ```
-Procs, blocks, and lambdas don't behave so weirdly though. If you have a proc set on an object's prototype,
+This also applies to procs, blocks, and lambdas. If you have a proc set on an object's prototype,
 then calling it on the child object will invoke in the context of the child object. So:
-
 ```ruby
 PROTOTYPE.set_something { self.something = "something" }
 PROTOTYPE.something                        # => nil
@@ -216,6 +215,13 @@ js_obj.something                           # => nil
 js_obj.set_something
 js_obj.something                           # => "something"
 PROTOTYPE.something                        # => nil
+```
+If you don't want to invoke the proc in the context of the object and would rather get
+at the proc object itself, then just use ```#[]```.
+```ruby
+PROTOTYPE.proc { |x| x * 2 }
+
+js_obj[:proc]                 # => (a Proc-ified version of the block used to def the proc method above)
 ```
 ## Frequently Asked Questions (aka FAQ)
 ### Why would anyone want this?

@@ -47,7 +47,7 @@ class JsObject < Prototype
   end
 
   def method_missing(method, *arguments, &block)
-    return super if method.to_s[-1] == '=' && method.to_s[-2] != '='
+    return super if equals_method?(method)
     delegate_to_prototype method, arguments, block
   end
 

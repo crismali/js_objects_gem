@@ -18,7 +18,7 @@ class Prototype < Hash
   private
 
   def method_missing(method, *arguments, &block)
-    if method.to_s[-1] == '=' && method.to_s[-2] != '='
+    if equals_method?(method)
       self[setter_to_getter_name(method)] = arguments.first
     else
       self[method]
@@ -31,6 +31,10 @@ class Prototype < Hash
 
   def getter_to_setter_name(getter_name)
     "#{getter_name}=".to_sym
+  end
+
+  def equals_method?(method_name)
+    method_name.to_s[-1] == '=' && method_name.to_s[-2] != '='
   end
 
   def define_setter_method(method_name)

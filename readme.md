@@ -8,13 +8,21 @@ Ruby 1.9 or Ruby 2.0. Might work on 1.8.7, but I haven't checked.
 ## How to install
 Y'know, the way you normally install gems. Either: ```gem install js_objects``` or
 add ```gem js_objects``` to your Gemfile and ```bundle install```.
-## Syntaxes and ways to use this thing
+## JsObject
+JsObjects are supposed to behave like Javascript objects, meaning you can define methods
+and attributes on them through a ```#["attribute"]```, calling ```#attribute=``` (where 'attribute'
+is mostly whatever you want it to be). They also implement a prototypal inheritance scheme, just
+like real Javascript. That means they have a prototype (either another JsObject or an instance of
+the Prototype class) that you can modify or set yourself. JsObject inherits from Hash, so it has
+all of the Hash methods available to it. Not all of these methods are wrapped up in by this code
+so it's possible you could experience some weird behavior or get your object into a weird state.
+But that's all of programming though.
 ### Basics
 First, get a Javascript object like so:
 ```ruby
 js_obj = JsObject.new
 ```
-You can also give it an argument if you don't want to use its default prototype (more on prototypes later)
+You can also give it an argument if you don't want to use its default prototype (more on prototypes later).
 ```ruby
 JsObject.new(prototype)
 ```
@@ -73,9 +81,9 @@ js_obj[array]                   # => nil
 Of course, anything that doesn't implement ```#to_s``` will raise an error if you try to use it as a key:
 ```ruby
 basic = BasicObject.new
-js_obj[basic]                   # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0>
-js_obj[basic] = 5               # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0>
-js_obj[basic]                   # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0> still.
+js_obj[basic]        # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0>
+js_obj[basic] = 5    # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0>
+js_obj[basic]        # => NoMethodError: undefined method `to_s' for #<BasicObject:0x007f8001a1c6a0> still.
 ```
 ### Blocks, Procs, and Lambdas become methods.
 If you set a Proc as a property, it becomes a method, but it's still accessible via ```#[]```.
@@ -104,9 +112,25 @@ js_obj.other_num = 3
 ```
 Hate typing ```Proc.new``` or```->```? Well, you don't have to: You can simply call an unknown
 method and pass it a block to define the method on the object. You can still access the Proc object
-(say if you wanted another JS object to have the same method) via #[]. Also, every method set on
-a JS object is executed in the context of the object, which is pretty neat.
+(say if you wanted another JS object to have the same method) via ```#[]```.
+
 ```ruby
+js_obj.new_method { |x| x * x }
+js_obj.new_method(5)              # => 25
+
+js_obj.another_method do |word|
+  word.upcase
+end
+js_obj.another_method("word")     # => "WORD"
+```
+Also, every method set ona JS object is executed in the context of the object, so feel free to use ```self``` when defining methods
+through blocks, procs, or lambdas. Just remember that you shouldn't use ```self``` in a block, proc, or lambda
+that's passed as an argument to another method, unless you want that ```self``` to be the scope the proc was created
+in. So this is good:
+```ruby
+js_obj.context_is? { self }
+js_obj.context_is?              # => js_obj
+
 js_obj.number_method do |x|
   self.num = x + self.num
   self.num + self.other_num
@@ -115,18 +139,111 @@ end
 js_obj.number_method(2)         # => 10
 js_obj.num                      # => 7
 ```
-Sick of property or method on your object? Get rid of it with #delete
+But this will be weird.
+```ruby
+js_obj.proc = Proc.new{ |&block| block.call }
+js_obj.proc{ "this context: #{self}"" }             # => "this context: main"
+```
+Sick of property or method on your object? Get rid of it with ```#delete```.
 ```ruby
 js_obj.tired = "of this property"
 js_obj.delete(:tired)
 js_obj.tired                    # => nil
 ```
+## Prototype
+Prototype objects share a lot in common with JsObject objects as JsObject inherits from Prototype,
+which inherits from Hash. The main difference between JsObject and Prototype does not implement
+prototypal inheritance which sounds like it doesn't make sense, but don't worry: It does.
+Unknown methods are not deferred to a prototype, they simply return ```nil```, unless you use the
+Hash method ```#default=``` or ```#default_proc``` to specify a different return value. You can make
+it raise an error so you don't get immediate errors instead of ```NoMethodError``` for ```nil``` later.
+
+Since you have access to the Prototype class, you can utilize them as a kind of OpenStruct that can call
+methods or have as many different prototypal inheritance trees as you'd like.
+
+```PROTOTYPE``` is the default prototype for JsObjects. So instead of doing this:
+```ruby
+js_obj.something                # => nil
+js_obj.prototype.something = "something"
+js_obj.something                # => "something"
+```
+You can just do this:
+```ruby
+js_obj.something                # => nil
+PROTOTYPE.something = "something"
+js_obj.something                # => "something"
+```
+Whatever you want.
+## Prototypal Inheritance
+[Protoypal Inheritance](http://en.wikipedia.org/wiki/Prototype-based_programming) can be read about that link. The short version is that objects don't inherit from a class, but instead inherit methods and attributes from a prototype.
+
+For instance, let's say we have 3 objects: ```PROTOTYPE``` (the default instance of the Prototype class and the default prototype
+for JsObjects), ```js_obj```, and ```js_obj2```.
+```ruby
+js_obj2.prototype = js_obj
+
+PROTOTYPE == js_obj.prototype               # => true
+js_obj2.prototype == js_obj                 # => true
+js_obj2.prototype.prototype == PROTOTYPE    # => true
+```
+If a method or attribute is defined somewhere in an object's inheritance tree, then that value will bubble up.
+```ruby
+PROTOTYPE.something = "something"
+
+PROTOTYPE.something                          # => "something"
+js_obj.something                             # => "something"
+js_obj2.something                            # => "something"
+
+js_obj.something_else = "something else"
+PROTOTYPE.something_else                     # => nil
+js_obj.something_else                        # => "something else"
+js_obj2.something_else                       # => "something else"
+
+js_obj2.another_thing = "anothing thing"
+
+PROTOTYPE.another_thing                          # => nil
+js_obj.another_thing                             # => nil
+js_obj2.another_thing                            # => "another thing"
+```
+Note: If you set a default value on your JsObject (via ```default=``` or ```default_proc=```) and it returns
+a non nil or non false value, you'll disrupt inheritance. So:
+```ruby
+PROTOTYPE.something = "something"
+js_obj.something              # => "something"
+
+js_obj.default = true
+js_obj.something              # => true
+```
+But:
+```ruby
+PROTOTYPE.something = "something"
+js_obj.something              # => "something"
+
+js_obj.default = false
+js_obj.something              # => "something"
+```
+This stuff can get weird, so as always, be careful.
+
+Procs, blocks, and lambdas don't behave so weirdly though. If you have a proc set on an object's prototype,
+then calling it on the child object will invoke in the context of the child object. So:
+
+```ruby
+PROTOTYPE.set_something { self.something = "something" }
+PROTOTYPE.something                        # => nil
+js_obj.something                           # => nil
+
+js_obj.set_something
+js_obj.something                           # => "something"
+PROTOTYPE.something                        # => nil
+```
 ## Frequently Asked Questions (aka FAQ)
 ### Why would anyone want this?
+* Why do you gotta hate?
 * If they really liked Javascript objects but had to write Ruby.
 * If they hate brackets and would rather just call methods on their objects
 * If they hate classical inheritance and prefer prototypal inheritance.
 * If they wanted really badass OpenStructs with prototypal inheritance.
+
 ### Why not make this out of OpenStruct instead of Hash?
 Then it wouldn't work in Ruby 1.9.3. OpenStructs only got the cool new ```#[]``` syntax in Ruby 2.0.
 Also, OpenStructs are pretty bare methodwise while Hashes already have a ton of methods.

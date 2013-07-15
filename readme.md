@@ -205,25 +205,6 @@ PROTOTYPE.another_thing                          # => nil
 js_obj.another_thing                             # => nil
 js_obj2.another_thing                            # => "another thing"
 ```
-Note: If you set a default value on your JsObject (via ```default=``` or ```default_proc=```) and it returns
-a non nil or non false value, you'll disrupt inheritance. So:
-```ruby
-PROTOTYPE.something = "something"
-js_obj.something              # => "something"
-
-js_obj.default = true
-js_obj.something              # => true
-```
-But:
-```ruby
-PROTOTYPE.something = "something"
-js_obj.something              # => "something"
-
-js_obj.default = false
-js_obj.something              # => "something"
-```
-This stuff can get weird, so as always, be careful.
-
 Procs, blocks, and lambdas don't behave so weirdly though. If you have a proc set on an object's prototype,
 then calling it on the child object will invoke in the context of the child object. So:
 

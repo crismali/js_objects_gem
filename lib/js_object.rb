@@ -54,7 +54,7 @@ class JsObject < Prototype
   def delegate_to_prototype(method_name, arguments, block)
     prototypes_value = prototype[method_name]
     if prototypes_value.kind_of? Proc
-      define_singleton_method :__proto_proc, prototypes_value
+      define_singleton_method :__proto_proc, &prototypes_value
       __proto_proc *arguments, &block
     else
       prototypes_value

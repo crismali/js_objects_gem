@@ -7,7 +7,7 @@ be frequently asked questions are below.
 Ruby 1.9 or Ruby 2.0. Might work on 1.8.7, but I haven't checked.
 ## How to install
 Y'know, the way you normally install gems. Either: ```gem install js_objects``` or
-add ```gem js_objects``` to your Gemfile and ```bundle install```.
+add ```gem "js_objects"``` to your Gemfile and ```bundle install```.
 ## JsObject
 JsObjects are supposed to behave like Javascript objects, meaning you can define methods
 and attributes on them through a ```#["attribute"]```, calling ```#attribute=``` (where 'attribute'

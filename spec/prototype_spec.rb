@@ -1,6 +1,10 @@
 require 'pry'
 require 'rspec'
-require_relative '../lib/prototype'
+if RUBY_VERSION.match(/2\..+/)
+  require_relative '../lib/2.0/prototype'
+else
+  require_relative '../lib/1.9/prototype'
+end
 
 describe Prototype do
   let(:prototype) { Prototype.new }

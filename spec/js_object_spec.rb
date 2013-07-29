@@ -1,7 +1,12 @@
 require 'pry'
 require 'rspec'
-require_relative '../lib/prototype'
-require_relative '../lib/js_object'
+if RUBY_VERSION.match(/2\..+/)
+  require_relative '../lib/2.0/prototype'
+  require_relative '../lib/2.0/js_object'
+else
+  require_relative '../lib/1.9/prototype'
+  require_relative '../lib/1.9/js_object'
+end
 
 describe JsObject do
 
